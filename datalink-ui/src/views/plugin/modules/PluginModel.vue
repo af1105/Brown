@@ -22,7 +22,7 @@
       <div :key='Math.random()'>
         <a-upload
           :showUploadList='false'
-          :beforeUpload='checkFile'
+          :beforeUpload='(file) => checkFile(file,100,["jar"])'
           @change='handlerUpload'
           :customRequest='customRequest'
         >
@@ -54,6 +54,7 @@
 </template>
 
 <script>
+import { checkFile } from '@/utils/util'
 import { postAction, putAction, uploadAction } from '@/api/manage'
 
 export default {
@@ -74,10 +75,11 @@ export default {
         pluginName: [{ required: true, message: '请输入插件名称', trigger: 'change' }],
         packagePath: [{ required: true, message: '请输入包路径', trigger: 'blur' }]
       },
-      isEdit: false
+      isEdit: false,
     }
   },
   methods: {
+    checkFile,
     add() {
       this.edit({})
     },
@@ -125,23 +127,6 @@ export default {
         return false
       }
       return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
-    },
-    checkFile(file) {
-      //检查大小
-      const isLt100M = file.size / 1024 / 1024 < 100
-      if (!isLt100M) {
-        this.$message.error('文件大小不能超过100M！')
-        return false
-      }
-      //检查格式
-      let allowUpload = ['jar']
-      let fileExtension = file.name.split('.').pop()
-      if (fileExtension) fileExtension = fileExtension.toLowerCase()
-      if (allowUpload.indexOf(fileExtension) === -1) {
-        this.$message.error('文件格式不合法！')
-        return false
-      }
-      return true
     },
     handlerUpload(info) {
       if (info.file.status !== 'uploading') {

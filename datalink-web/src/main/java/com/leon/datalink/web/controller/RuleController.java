@@ -1,21 +1,25 @@
 package com.leon.datalink.web.controller;
 
+import cn.hutool.core.io.IoUtil;
+import cn.hutool.poi.excel.ExcelReader;
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.leon.datalink.core.exception.KvStorageException;
 import com.leon.datalink.core.utils.IdUtil;
 import com.leon.datalink.core.utils.JacksonUtils;
 import com.leon.datalink.core.utils.Loggers;
 import com.leon.datalink.core.utils.ScriptUtil;
 import com.leon.datalink.core.variable.GlobalVariableContent;
 import com.leon.datalink.rule.entity.Rule;
-import com.leon.datalink.web.model.RestResult;
-import com.leon.datalink.web.model.RestResultUtils;
-import com.leon.datalink.web.model.ScriptParamVO;
-import com.leon.datalink.web.model.SqlParamVO;
+import com.leon.datalink.web.model.*;
 import com.leon.datalink.web.service.RuleService;
 import com.leon.datalink.web.util.ValidatorUtil;
 import org.jetlinks.reactor.ql.ReactorQL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import javax.script.*;
@@ -182,6 +186,37 @@ public class RuleController {
         result.put("result", "javascript".equals(language) ? ScriptUtil.toJavaObject(transform) : transform);
         result.put("time", time2 - time1);
         return result;
+    }
+
+
+    /**
+     * 导入点位
+     *
+     * @param excelFile
+     * @throws IOException
+     */
+    @PostMapping(value = "/points/import", consumes = "multipart/*", headers = "Content-Type=multipart/form-data")
+    public List<Map<String, Object>> importPoints( @RequestParam("file") MultipartFile excelFile,@RequestParam("field") String fieldMap) throws Exception {
+        ValidatorUtil.isNotNull(excelFile, excelFile.getOriginalFilename());
+        ExcelReader reader = ExcelUtil.getReader(excelFile.getInputStream());
+        reader.setHeaderAlias(JacksonUtils.toObj(fieldMap.getBytes(), new TypeReference<Map<String, String>>() {}));
+        return reader.readAll();
+    }
+
+    /**
+     * 导出点位
+     */
+    @PostMapping(value = "/points/export")
+    public void download(@RequestBody PointsExportVO body, HttpServletResponse response) throws IOException, KvStorageException {
+        ExcelWriter writer = ExcelUtil.getWriter(true);
+        writer.setHeaderAlias(body.getFieldMap());
+        writer.write(body.getData());
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
+        response.setHeader("Content-Disposition","attachment;filename=" + body.getFileName());
+        ServletOutputStream out=response.getOutputStream();
+        writer.flush(out, true);
+        writer.close();
+        IoUtil.close(out);
     }
 
 

@@ -1,7 +1,5 @@
 package com.leon.datalink.web.model;
 
-import java.lang.ref.PhantomReference;
-
 /**
  * @ClassName SystemInfo
  * @Description

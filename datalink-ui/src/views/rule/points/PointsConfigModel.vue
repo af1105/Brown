@@ -1,11 +1,11 @@
 <template>
-  <a-modal v-model='visible' title='点位配置' :width='650'>
+  <a-modal v-model='visible' title='点位配置' :width='850' :closable='false' :maskClosable='false' :bodyStyle='{paddingTop:"15px"}'>
     <template slot='footer'>
       <a-button key='back' @click='handleClose'>关闭</a-button>
       <a-button key='submit' type='primary' @click='handleOk' v-show='!disableEdit'>保存</a-button>
     </template>
 
-    <opc-points-model ref='PointModel' v-if='resourceType === "OPCUA"' :disable-edit='disableEdit'></opc-points-model>
+    <opc-u-a-points-model ref='PointModel' v-if='resourceType === "OPCUA"' :disable-edit='disableEdit'></opc-u-a-points-model>
     <snmp-points-model ref='PointModel' v-if='resourceType === "SNMP"' :disable-edit='disableEdit'></snmp-points-model>
     <modbus-tcp-points-model ref='PointModel' v-if='resourceType === "MODBUSTCP"' :disable-edit='disableEdit'></modbus-tcp-points-model>
 
@@ -13,13 +13,13 @@
 </template>
 
 <script>
-import OpcPointsModel from './model/OpcPointsModel'
+import OpcUAPointsModel from './model/OpcUAPointsModel.vue'
 import SnmpPointsModel from './model/SnmpPointsModel'
 import ModbusTcpPointsModel from './model/ModbusTcpPointsModel'
 
 export default {
   name: 'PointsConfigModel',
-  components: { OpcPointsModel, SnmpPointsModel, ModbusTcpPointsModel },
+  components: { OpcUAPointsModel, SnmpPointsModel, ModbusTcpPointsModel },
   data() {
     return {
       visible: false,

@@ -80,3 +80,13 @@ export function uploadAction(url, parameter) {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+// download
+export function downFileByPost(url, parameter) {
+  return axios({
+    url: url,
+    method: 'post',
+    data: parameter,
+    responseType: 'blob'
+  })
+}

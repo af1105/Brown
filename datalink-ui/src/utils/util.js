@@ -109,7 +109,7 @@ export function scorePassword(pass) {
  */
 export function simpleDebounce(fn, delay = 100) {
   let timer = null
-  return function () {
+  return function() {
     let args = arguments
     if (timer) {
       clearTimeout(timer)
@@ -138,4 +138,32 @@ export function truncateString(str, maxLength) {
   } else {
     return str
   }
+}
+
+export function checkFile(file, size = 10, allowUpload = []) {
+  //检查大小
+  const sizeCheck = file.size / 1024 / 1024 < size
+  if (!sizeCheck) {
+    this.$message.error('文件大小不能超过' + size + 'M！')
+    return false
+  }
+  //检查格式
+  if (allowUpload.length > 0) {
+    let fileExtension = file.name.split('.').pop()
+    if (fileExtension) fileExtension = fileExtension.toLowerCase()
+    if (allowUpload.indexOf(fileExtension) === -1) {
+      this.$message.error('文件格式不合法！')
+      return false
+    }
+  }
+  return true
+}
+
+export function downloadFile(path, name) {
+  const link = document.createElement('a')
+  link.style.display = 'none'
+  link.href = path
+  link.setAttribute('download', name)
+  document.body.appendChild(link)
+  link.click()
 }

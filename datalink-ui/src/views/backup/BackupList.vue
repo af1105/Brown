@@ -17,7 +17,7 @@
               <a-space size='middle'>
                 <a-upload
                   :showUploadList='false'
-                  :beforeUpload='checkFile'
+                  :beforeUpload='(file) => checkFile(file,50,["json"])'
                   @change='handlerUpload'
                   :customRequest='customRequest'
                 >
@@ -67,7 +67,7 @@
 </template>
 
 <script>
-
+import { checkFile } from '@/utils/util'
 import { postAction, downFile, getAction, uploadAction } from '@/api/manage'
 
 export default {
@@ -109,6 +109,7 @@ export default {
     this.loadData()
   },
   methods: {
+    checkFile,
     loadData() {
       this.loading = true
       postAction('/api/backup/list', this.queryParam).then(res => {
@@ -168,23 +169,6 @@ export default {
     reset() {
       this.queryParam = {}
       this.loadData()
-    },
-    checkFile(file) {
-      //检查大小
-      const isLt100M = file.size / 1024 / 1024 < 100
-      if (!isLt100M) {
-        this.$message.error('文件大小不能超过100M！')
-        return false
-      }
-      //检查格式
-      let allowUpload = ['json']
-      let fileExtension = file.name.split('.').pop()
-      if (fileExtension) fileExtension = fileExtension.toLowerCase()
-      if (allowUpload.indexOf(fileExtension) === -1) {
-        this.$message.error('文件格式不合法！')
-        return false
-      }
-      return true
     },
     handlerUpload(info) {
       if (info.file.status !== 'uploading') {
