@@ -1,121 +1,31 @@
 package com.leon.datalink.resource.driver;
 
 import cn.hutool.core.exceptions.ValidateException;
-import cn.hutool.db.Entity;
-import cn.hutool.db.handler.EntityListHandler;
-import cn.hutool.db.sql.SqlExecutor;
-import com.alibaba.druid.pool.DruidDataSource;
 import com.leon.datalink.core.config.ConfigProperties;
-import com.leon.datalink.core.utils.Loggers;
-import com.leon.datalink.resource.AbstractDriver;
-import com.leon.datalink.resource.constans.DriverModeEnum;
+import com.leon.datalink.resource.JdbcAbstractDriver;
 import org.springframework.util.StringUtils;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.HashMap;
-import java.util.List;
-
-public class SqlServerDriver extends AbstractDriver {
-
-    private DruidDataSource dataSource;
+public class SqlServerDriver extends JdbcAbstractDriver {
 
     @Override
-    public void create(DriverModeEnum driverMode, ConfigProperties properties) throws Exception {
+    public String url(ConfigProperties properties) {
         if (StringUtils.isEmpty(properties.getString("ip"))) throw new ValidateException();
         if (StringUtils.isEmpty(properties.getString("port"))) throw new ValidateException();
         if (StringUtils.isEmpty(properties.getString("databaseName"))) throw new ValidateException();
-        if (StringUtils.isEmpty(properties.getString("username"))) throw new ValidateException();
-        if (StringUtils.isEmpty(properties.getString("password"))) throw new ValidateException();
-
-
-        DruidDataSource dataSource = new DruidDataSource(); // 创建Druid连接池
-        dataSource.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver"); // 设置连接池的数据库驱动
-        dataSource.setUrl(String.format("jdbc:sqlserver://%s:%s;DatabaseName=%s",
+        return String.format("jdbc:sqlserver://%s:%s;DatabaseName=%s",
                 properties.getString("ip"),
                 properties.getString("port"),
-                properties.getString("databaseName"))); // 设置数据库的连接地址
-        dataSource.setUsername(properties.getString("username")); // 数据库的用户名
-        dataSource.setPassword(properties.getString("password")); // 数据库的密码
-        dataSource.setInitialSize(properties.getInteger("initSize", 8)); // 设置连接池的初始大小
-        dataSource.setMinIdle(properties.getInteger("minIdle", 1)); // 设置连接池大小的下限
-        dataSource.setMaxActive(properties.getInteger("maxActive", 20)); // 设置连接池大小的上限
-        dataSource.setValidationQuery("select 1;");
-        this.dataSource = dataSource;
+                properties.getString("databaseName"));
     }
 
     @Override
-    public void destroy(DriverModeEnum driverMode, ConfigProperties properties) throws Exception {
-        dataSource.close();
+    public String driverClassName() {
+        return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     }
 
     @Override
-    public boolean test(ConfigProperties properties) {
-        if (StringUtils.isEmpty(properties.getString("ip"))) return false;
-        if (StringUtils.isEmpty(properties.getString("port"))) return false;
-        if (StringUtils.isEmpty(properties.getString("databaseName"))) return false;
-        if (StringUtils.isEmpty(properties.getString("username"))) return false;
-        if (StringUtils.isEmpty(properties.getString("password"))) return false;
-
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            DriverManager.getConnection(String.format("jdbc:sqlserver://%s:%s;DatabaseName=%s",
-                    properties.getString("ip"),
-                    properties.getString("port"),
-                    properties.getString("databaseName")),
-                    properties.getString("username"),
-                    properties.getString("password"));
-            return true;
-        } catch (Exception e) {
-            Loggers.DRIVER.error("sqlserver driver test {}", e.getMessage());
-            return false;
-        }
+    public String validationQuery() {
+        return "select 1;";
     }
 
-    @Override
-    public void scheduleTrigger(ConfigProperties properties) throws Exception {
-        String sql = properties.getString("sql");
-        if (StringUtils.isEmpty(sql)) throw new ValidateException();
-
-        List<Entity> result = null;
-        try (Connection connection = dataSource.getConnection()) {
-            if (connection != null) {
-                String render = this.templateAnalysis(sql, getVariable(null));
-                if (!StringUtils.isEmpty(render)) sql = render;
-                result = SqlExecutor.query(connection, sql, new EntityListHandler());
-            }
-        } catch (Exception e) {
-            Loggers.DRIVER.error("sqlserver driver error {}", e.getMessage());
-            throw e;
-        }
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("sql", sql);
-        map.put("result", result);
-        map.put("driver", properties);
-        produceData(map);
-    }
-
-    @Override
-    public Object handleData(Object data, ConfigProperties properties) throws Exception {
-        String sql = properties.getString("sql");
-        if (StringUtils.isEmpty(sql)) throw new ValidateException();
-
-        Boolean result = null;
-        try (Connection connection = dataSource.getConnection()) {
-            if (connection != null) {
-                String render = this.templateAnalysis(sql, getVariable(data));
-                if (!StringUtils.isEmpty(render)) sql = render;
-                result = connection.createStatement().execute(sql);
-            }
-        } catch (Exception e) {
-            Loggers.DRIVER.error("sqlserver driver error {}", e.getMessage());
-            throw e;
-        }
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("sql", sql);
-        map.put("result", result);
-        return map;
-    }
 }

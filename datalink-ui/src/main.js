@@ -33,7 +33,7 @@ Vue.use(VueAxios)
 Vue.component('pro-layout', ProLayout)
 Vue.component('page-container', PageHeaderWrapper)
 Vue.component('page-header-wrapper', PageHeaderWrapper)
-Vue.component("EasyCron", EasyCron)
+Vue.component("easy-cron", EasyCron)
 
 window.umi_plugin_ant_themeVar = themePluginConfig.theme
 

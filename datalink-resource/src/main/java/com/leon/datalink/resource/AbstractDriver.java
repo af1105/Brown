@@ -35,6 +35,7 @@ public abstract class AbstractDriver implements Driver {
         };
     }
 
+    @Override
     public final void init(Consumer<RuntimeData> consumer) {
         this.consumer = consumer;
         this.templateEngine = TemplateUtil.createEngine();

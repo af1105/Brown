@@ -1,5 +1,5 @@
 <template>
-  <div class='input-cron'>
+  <div class='cron-input'>
     <a-input :placeholder='placeholder' v-model='editCronValue' :disabled='disabled'>
       <span slot='addonAfter' @click='showConfigDlg' class='config-btn' :disabled='disabled'>
         <a-icon type='setting'></a-icon>
@@ -7,14 +7,14 @@
       </span>
     </a-input>
     <a-modal :visible.sync='show' title='Cron表达式' width='800px' :closable='false' :bodyStyle='{paddingTop:"10px"}'>
-      <easy-cron
+      <cron-modal
         v-model='editCronValue'
         :exeStartTime='exeStartTime'
         :hideYear='hideYear'
         :remote='remote'
         :hideSecond='hideSecond'
         style='width: 100%'
-      ></easy-cron>
+      ></cron-modal>
       <div slot='footer'>
         <a-button @click='reset'>重置</a-button>
         <a-button type='primary' @click='show=false'>确定</a-button>
@@ -24,11 +24,11 @@
 </template>
 
 <script>
-import EasyCron from './EasyCron.vue'
+import CronModal from './CronModal.vue'
 
 export default {
-  name: 'input-cron',
-  components: { EasyCron },
+  name: 'cron-input',
+  components: { CronModal },
   model: {
     prop: 'cronValue',
     event: 'change'

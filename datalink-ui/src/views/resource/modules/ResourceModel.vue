@@ -27,16 +27,13 @@
           </a-form-model-item>
         </a-col>
       </a-row>
+      <jdbc-properties v-if="jdbcResource.indexOf(modal.resourceType)!==-1" ref='PropertiesModal'></jdbc-properties>
       <mqtt-properties v-if="modal.resourceType === 'MQTT'" ref='PropertiesModal'></mqtt-properties>
       <kafka-properties v-if="modal.resourceType === 'KAFKA'" ref='PropertiesModal'></kafka-properties>
-      <mysql-properties v-if="modal.resourceType === 'MYSQL'" ref='PropertiesModal'></mysql-properties>
-      <postgresql-properties v-if="modal.resourceType === 'POSTGRESQL'" ref='PropertiesModal'></postgresql-properties>
       <http-client-properties v-if="modal.resourceType === 'HTTPCLIENT'" ref='PropertiesModal'></http-client-properties>
       <http-server-properties v-if="modal.resourceType === 'HTTPSERVER'" ref='PropertiesModal'></http-server-properties>
       <coap-client-properties v-if="modal.resourceType === 'COAPCLIENT'" ref='PropertiesModal'></coap-client-properties>
       <coap-server-properties v-if="modal.resourceType === 'COAPSERVER'" ref='PropertiesModal'></coap-server-properties>
-      <t-dengine-properties v-if="modal.resourceType === 'TDENGINE'" ref='PropertiesModal'></t-dengine-properties>
-      <sqlserver-properties v-if="modal.resourceType === 'SQLSERVER'" ref='PropertiesModal'></sqlserver-properties>
       <opc-u-a-properties v-if="modal.resourceType === 'OPCUA'" ref='PropertiesModal'></opc-u-a-properties>
       <redis-properties v-if="modal.resourceType === 'REDIS'" ref='PropertiesModal'></redis-properties>
       <rabbit-m-q-properties v-if="modal.resourceType === 'RABBITMQ'" ref='PropertiesModal'></rabbit-m-q-properties>
@@ -44,13 +41,10 @@
       <udp-properties v-if="modal.resourceType === 'UDP'" ref='PropertiesModal'></udp-properties>
       <snmp-properties v-if="modal.resourceType === 'SNMP'" ref='PropertiesModal'></snmp-properties>
       <modbus-tcp-properties v-if="modal.resourceType === 'MODBUSTCP'" ref='PropertiesModal'></modbus-tcp-properties>
-      <timescale-d-b-properties v-if="modal.resourceType === 'TIMESCALEDB'" ref='PropertiesModal'></timescale-d-b-properties>
-      <maria-d-b-properties v-if="modal.resourceType === 'MARIADB'" ref='PropertiesModal'></maria-d-b-properties>
       <rocket-m-q-properties v-if="modal.resourceType === 'ROCKETMQ'" ref='PropertiesModal'></rocket-m-q-properties>
       <active-m-q-properties v-if="modal.resourceType === 'ACTIVEMQ'" ref='PropertiesModal'></active-m-q-properties>
       <pulsar-properties v-if="modal.resourceType === 'PULSAR'" ref='PropertiesModal'></pulsar-properties>
       <d-m8-properties v-if="modal.resourceType === 'DM8'" ref='PropertiesModal'></d-m8-properties>
-      <kingbase-properties v-if="modal.resourceType === 'KINGBASE'" ref='PropertiesModal'></kingbase-properties>
       <file-properties v-if="modal.resourceType === 'FILE'" ref='PropertiesModal'></file-properties>
       <a-form-model-item label='备注' prop='description'>
         <a-textarea v-model='modal.description' :rows='2' placeholder='请输入备注'
@@ -80,16 +74,13 @@
 <script>
 import { postAction, putAction } from '@/api/manage'
 import { resourceTypeAllList } from '@/config/resource.config'
+import JdbcProperties from '../properties/JdbcProperties.vue'
 import MqttProperties from '../properties/MqttProperties'
 import KafkaProperties from '../properties/KafkaProperties'
-import MysqlProperties from '../properties/MysqlProperties'
-import PostgresqlProperties from '../properties/PostgresqlProperties'
 import HttpClientProperties from '../properties/HttpClientProperties'
 import HttpServerProperties from '../properties/HttpServerProperties'
 import CoapClientProperties from '../properties/CoapClientProperties'
 import CoapServerProperties from '../properties/CoapServerProperties'
-import TDengineProperties from '../properties/TDengineProperties'
-import SqlserverProperties from '../properties/SqlserverProperties'
 import OpcUAProperties from '../properties/OpcUAProperties'
 import RedisProperties from '../properties/RedisProperties'
 import RabbitMQProperties from '../properties/RabbitMQProperties'
@@ -97,28 +88,22 @@ import TcpProperties from '../properties/TcpProperties'
 import UdpProperties from '../properties/UdpProperties'
 import SnmpProperties from '../properties/SnmpProperties'
 import ModbusTcpProperties from '../properties/ModbusTcpProperties'
-import TimescaleDBProperties from '../properties/TimescaleDBProperties'
-import MariaDBProperties from '../properties/MariaDBProperties'
 import RocketMQProperties from '../properties/RocketMQProperties'
 import ActiveMQProperties from '../properties/ActiveMQProperties'
 import PulsarProperties from '../properties/PulsarProperties'
 import DM8Properties from '../properties/DM8Properties'
-import KingbaseProperties from '../properties/KingbaseProperties'
 import FileProperties from '../properties/FileProperties'
 
 export default {
   name: 'ResourceModel',
   components: {
+    JdbcProperties,
     MqttProperties,
     KafkaProperties,
-    MysqlProperties,
-    PostgresqlProperties,
     HttpClientProperties,
     HttpServerProperties,
     CoapClientProperties,
     CoapServerProperties,
-    TDengineProperties,
-    SqlserverProperties,
     OpcUAProperties,
     RedisProperties,
     RabbitMQProperties,
@@ -126,13 +111,10 @@ export default {
     UdpProperties,
     SnmpProperties,
     ModbusTcpProperties,
-    TimescaleDBProperties,
-    MariaDBProperties,
     RocketMQProperties,
     ActiveMQProperties,
     PulsarProperties,
     DM8Properties,
-    KingbaseProperties,
     FileProperties
   },
   data() {
@@ -150,7 +132,8 @@ export default {
         resourceType: [{ required: true, message: '请选择资源类型', trigger: 'change' }],
         resourceName: [{ required: true, message: '请输入资源名称', trigger: 'blur' }]
       },
-      resourceTypeAllList: resourceTypeAllList
+      resourceTypeAllList: resourceTypeAllList,
+      jdbcResource:["MYSQL","POSTGRESQL","TDENGINE","SQLSERVER","TIMESCALEDB","MARIADB","KINGBASE"]
     }
   },
   methods: {

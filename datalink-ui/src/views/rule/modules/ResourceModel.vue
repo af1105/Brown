@@ -26,16 +26,13 @@
           </a-select-option>
         </a-select>
       </a-form-model-item>
+      <jdbc-properties v-if="jdbcResource.indexOf(modal.resourceType)!==-1" ref='PropertiesModal' :type='resourceMode'></jdbc-properties>
       <mqtt-properties v-if="modal.resourceType === 'MQTT'" ref='PropertiesModal' :type='resourceMode'></mqtt-properties>
       <kafka-properties v-if="modal.resourceType === 'KAFKA'" ref='PropertiesModal' :type='resourceMode'></kafka-properties>
-      <MysqlProperties v-if="modal.resourceType === 'MYSQL'" ref='PropertiesModal' :type='resourceMode'></MysqlProperties>
-      <postgresql-properties v-if="modal.resourceType === 'POSTGRESQL'" ref='PropertiesModal' :type='resourceMode'></postgresql-properties>
       <http-client-properties v-if="modal.resourceType === 'HTTPCLIENT'" ref='PropertiesModal' :type='resourceMode'></http-client-properties>
       <http-server-properties  v-if="modal.resourceType === 'HTTPSERVER'" ref='PropertiesModal' :type='resourceMode'></http-server-properties>
       <coap-client-properties  v-if="modal.resourceType === 'COAPCLIENT'" ref='PropertiesModal' :type='resourceMode'></coap-client-properties>
       <coap-server-properties  v-if="modal.resourceType === 'COAPSERVER'" ref='PropertiesModal' :type='resourceMode'></coap-server-properties>
-      <t-dengine-properties v-if="modal.resourceType === 'TDENGINE'" ref='PropertiesModal' :type='resourceMode'></t-dengine-properties>
-      <sqlserver-properties v-if="modal.resourceType === 'SQLSERVER'" ref='PropertiesModal' :type='resourceMode'></sqlserver-properties>
       <opc-u-a-properties v-if="modal.resourceType === 'OPCUA'" ref='PropertiesModal' :type='resourceMode'></opc-u-a-properties>
       <redis-properties v-if="modal.resourceType === 'REDIS'" ref='PropertiesModal' :type='resourceMode'></redis-properties>
       <rabbit-m-q-properties v-if="modal.resourceType === 'RABBITMQ'" ref='PropertiesModal' :type='resourceMode'></rabbit-m-q-properties>
@@ -43,13 +40,9 @@
       <udp-properties v-if="modal.resourceType === 'UDP'" ref='PropertiesModal' :type='resourceMode'></udp-properties>
       <snmp-properties v-if="modal.resourceType === 'SNMP'" ref='PropertiesModal' :type='resourceMode'></snmp-properties>
       <modbus-tcp-properties v-if="modal.resourceType === 'MODBUSTCP'" ref='PropertiesModal' :type='resourceMode'></modbus-tcp-properties>
-      <timescale-d-b-properties v-if="modal.resourceType === 'TIMESCALEDB'" ref='PropertiesModal' :type='resourceMode'></timescale-d-b-properties>
-      <maria-d-b-properties v-if="modal.resourceType === 'MARIADB'" ref='PropertiesModal' :type='resourceMode'></maria-d-b-properties>
       <rocket-m-q-properties v-if="modal.resourceType === 'ROCKETMQ'" ref='PropertiesModal' :type='resourceMode'></rocket-m-q-properties>
       <active-m-q-properties v-if="modal.resourceType === 'ACTIVEMQ'" ref='PropertiesModal' :type='resourceMode'></active-m-q-properties>
       <pulsar-properties v-if="modal.resourceType === 'PULSAR'" ref='PropertiesModal' :type='resourceMode'></pulsar-properties>
-      <d-m8-properties v-if="modal.resourceType === 'DM8'" ref='PropertiesModal' :type='resourceMode'></d-m8-properties>
-      <kingbase-properties v-if="modal.resourceType === 'KINGBASE'" ref='PropertiesModal' :type='resourceMode'></kingbase-properties>
       <file-properties v-if="modal.resourceType === 'FILE'" ref='PropertiesModal' :type='resourceMode'></file-properties>
     </a-form-model>
     <div
@@ -74,16 +67,13 @@
 <script>
 import { postAction } from '@/api/manage'
 import { getResourceListByType } from '@/config/resource.config'
+import JdbcProperties from '../properties/JdbcProperties.vue'
 import MqttProperties from '../properties/MqttProperties'
 import KafkaProperties from '../properties/KafkaProperties'
-import MysqlProperties from '../properties/MysqlProperties'
-import PostgresqlProperties from '../properties/PostgresqlProperties'
 import HttpClientProperties from '../properties/HttpClientProperties'
 import HttpServerProperties from '../properties/HttpServerProperties'
 import CoapClientProperties from '../properties/CoapClientProperties'
 import CoapServerProperties from '../properties/CoapServerProperties'
-import TDengineProperties from '../properties/TDengineProperties'
-import SqlserverProperties from '../properties/SqlserverProperties'
 import OpcUAProperties from '../properties/OpcUAProperties'
 import RedisProperties from '../properties/RedisProperties'
 import RabbitMQProperties from '../properties/RabbitMQProperties'
@@ -91,28 +81,21 @@ import TcpProperties from '../properties/TcpProperties'
 import UdpProperties from '../properties/UdpProperties'
 import SnmpProperties from '../properties/SnmpProperties'
 import ModbusTcpProperties from '../properties/ModbusTcpProperties'
-import TimescaleDBProperties from '../properties/TimescaleDBProperties'
-import MariaDBProperties from '../properties/MariaDBProperties'
 import RocketMQProperties from '../properties/RocketMQProperties'
 import ActiveMQProperties from '../properties/ActiveMQProperties'
 import PulsarProperties from '../properties/PulsarProperties'
-import DM8Properties from '../properties/DM8Properties'
-import KingbaseProperties from '../properties/KingbaseProperties'
 import FileProperties from '../properties/FileProperties'
 
 export default {
   name: 'ResourceModel',
   components: {
+    JdbcProperties,
     MqttProperties,
     KafkaProperties,
-    MysqlProperties,
-    PostgresqlProperties,
     HttpClientProperties,
     HttpServerProperties,
     CoapClientProperties,
     CoapServerProperties,
-    TDengineProperties,
-    SqlserverProperties,
     OpcUAProperties,
     RedisProperties,
     RabbitMQProperties,
@@ -120,13 +103,9 @@ export default {
     UdpProperties,
     SnmpProperties,
     ModbusTcpProperties,
-    TimescaleDBProperties,
-    MariaDBProperties,
     RocketMQProperties,
     ActiveMQProperties,
     PulsarProperties,
-    DM8Properties,
-    KingbaseProperties,
     FileProperties
   },
   data() {
@@ -145,11 +124,9 @@ export default {
       resourceList: [],
       resourceTypeList: [],
       resourceMode: null, // source or dest
-      resourceIndex: -1 // source or dest
+      resourceIndex: -1,
+      jdbcResource:["MYSQL","POSTGRESQL","TDENGINE","SQLSERVER","TIMESCALEDB","MARIADB","DM8","KINGBASE"]
     }
-  }
-  ,
-  mounted() {
   }
   ,
   methods: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="j-easy-cron">
+  <div class="cron-modal">
     <div class="content">
       <div>
         <a-tabs size="small" v-model="curtab">
@@ -81,7 +81,7 @@ import { simpleDebounce } from '@/utils/util'
 import ACol from 'ant-design-vue/es/grid/Col'
 
 export default {
-  name: 'easy-cron',
+  name: 'cron-modal',
   components: {
     ACol,
     SecondUi,
@@ -305,7 +305,7 @@ export default {
 </script>
 
 <style scoped lang="less">
-  .j-easy-cron {
+  .cron-modal {
 
     /deep/ .content {
       .ant-checkbox-wrapper + .ant-checkbox-wrapper {
