@@ -1,10 +1,12 @@
 package com.leon.datalink.web.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.poi.excel.ExcelReader;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.leon.datalink.core.exception.KvStorageException;
 import com.leon.datalink.core.utils.IdUtil;
@@ -196,10 +198,11 @@ public class RuleController {
      * @throws IOException
      */
     @PostMapping(value = "/points/import", consumes = "multipart/*", headers = "Content-Type=multipart/form-data")
-    public List<Map<String, Object>> importPoints( @RequestParam("file") MultipartFile excelFile,@RequestParam("field") String fieldMap) throws Exception {
+    public List<Map<String, Object>> importPoints(@RequestParam("file") MultipartFile excelFile, @RequestParam("field") String fieldMap) throws Exception {
         ValidatorUtil.isNotNull(excelFile, excelFile.getOriginalFilename());
         ExcelReader reader = ExcelUtil.getReader(excelFile.getInputStream());
-        reader.setHeaderAlias(JacksonUtils.toObj(fieldMap.getBytes(), new TypeReference<Map<String, String>>() {}));
+        reader.setHeaderAlias(JacksonUtils.toObj(fieldMap.getBytes(), new TypeReference<Map<String, String>>() {
+        }));
         return reader.readAll();
     }
 
@@ -207,13 +210,20 @@ public class RuleController {
      * 导出点位
      */
     @PostMapping(value = "/points/export")
-    public void download(@RequestBody PointsExportVO body, HttpServletResponse response) throws IOException, KvStorageException {
+    public void exportPoints(@RequestBody PointsExportVO body, HttpServletResponse response) throws IOException {
+        Map<String, String> fieldMap = body.getFieldMap();
+        List<Object> data = body.getData();
+        if (CollectionUtil.isEmpty(data)) {
+            Map<String, Object> emptyData = new HashMap<>();
+            fieldMap.keySet().forEach(key -> emptyData.put(key, null));
+            data = Lists.newArrayList(emptyData);
+        }
         ExcelWriter writer = ExcelUtil.getWriter(true);
-        writer.setHeaderAlias(body.getFieldMap());
-        writer.write(body.getData());
+        writer.setHeaderAlias(fieldMap);
+        writer.write(data);
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
-        response.setHeader("Content-Disposition","attachment;filename=" + body.getFileName());
-        ServletOutputStream out=response.getOutputStream();
+        response.setHeader("Content-Disposition", "attachment;filename=" + body.getFileName());
+        ServletOutputStream out = response.getOutputStream();
         writer.flush(out, true);
         writer.close();
         IoUtil.close(out);

@@ -8,7 +8,7 @@
                     @change='handlerUpload' :customRequest='customRequest'>
             <a-button icon='upload'>导入</a-button>
           </a-upload>
-          <a-button icon='download' @click='download'>导出</a-button>
+          <a-button icon='download' @click='download(false)'>导出</a-button>
           <a-popconfirm title='删除选中点位？' @confirm='removeBatch'>
             <a-button type='danger' icon='delete' v-show='selectedRowKeys.length > 0'>
               删除选中({{ selectedRowKeys.length }})
@@ -17,7 +17,7 @@
         </a-space>
       </a-col>
       <a-col :span='6' style='text-align: right'>
-        <a-button @click='downloadFile("/template/opcua.xlsx","opcua.xlsx")' type='link' icon='download'>下载模板
+        <a-button @click='download(true)' type='link' icon='download'>下载模板
         </a-button>
       </a-col>
     </a-row>
@@ -77,7 +77,7 @@
 
 <script>
 
-import { checkFile, downloadFile } from '@/utils/util'
+import { checkFile, timeStr } from '@/utils/util'
 import { downFileByPost, uploadAction } from '@/api/manage'
 
 export default {
@@ -129,7 +129,6 @@ export default {
   },
   methods: {
     checkFile,
-    downloadFile,
     set(points) {
       this.data = []
       if (!points) return
@@ -238,17 +237,19 @@ export default {
         options.onSuccess(res, options.file)
       })
     },
-    download() {
+    download(template) {
+      let data = template ? [] : this.get()
+      let fileName = template ? 'opcua_template.xlsx' : `opcua_${timeStr()}.xlsx`
       downFileByPost('/api/rule/points/export', {
-        data: this.get(),
+        data: data,
         fieldMap: this.fieldMap,
-        fileName: 'opcua.xlsx'
+        fileName: fileName
       }).then(res => {
         const blob = new Blob([res])
         let downloadElement = document.createElement('a')
         let href = window.URL.createObjectURL(blob)
         downloadElement.href = href
-        downloadElement.download = decodeURIComponent('opcua.xlsx')
+        downloadElement.download = decodeURIComponent(fileName)
         document.body.appendChild(downloadElement)
         downloadElement.click()
         document.body.removeChild(downloadElement)

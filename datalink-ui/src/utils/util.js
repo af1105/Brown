@@ -4,12 +4,6 @@ export function timeFix() {
   return hour < 9 ? '早上好' : hour <= 11 ? '上午好' : hour <= 13 ? '中午好' : hour < 20 ? '下午好' : '晚上好'
 }
 
-export function welcome() {
-  const arr = ['休息一会儿吧', '准备吃什么呢?', '要不要打一把 DOTA', '我猜你可能累了']
-  const index = Math.floor(Math.random() * arr.length)
-  return arr[index]
-}
-
 /**
  * 触发 window.resize
  */
@@ -159,11 +153,13 @@ export function checkFile(file, size = 10, allowUpload = []) {
   return true
 }
 
-export function downloadFile(path, name) {
-  const link = document.createElement('a')
-  link.style.display = 'none'
-  link.href = path
-  link.setAttribute('download', name)
-  document.body.appendChild(link)
-  link.click()
+export function timeStr(){
+  const now = new Date();
+  const year = now.getFullYear().toString();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  return `${year}${month}${day}${hours}${minutes}${seconds}`;
 }
