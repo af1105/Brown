@@ -57,7 +57,7 @@
         </span>
 
         <span slot='action' slot-scope='text, item'>
-              <a @click='handleEdit(item)' :disabled='item.enable'>编辑</a>
+              <a @click='handleEdit(item)' :disabled='item.enable'>配置</a>
              <a-divider type='vertical' />
                 <a @click='handleDelete(item)'>删除</a>
         </span>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { postAction, putAction } from '@/api/manage'
+import { postAction } from '@/api/manage'
 import ResourceModel from './modules/ResourceModel'
 import { resourceTypeMap, resourceTypeAllList, getResourceDetails } from '@/config/resource.config'
 

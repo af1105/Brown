@@ -5,13 +5,14 @@
     :dialog-style="{ top: '50px' }"
     :width='600'
     :visible='visible'
-    @cancel='onClose'
+    @cancel='close'
     :destroyOnClose='true'
     :bodyStyle='{maxHeight:"650px",overflowY:"auto",paddingBottom:"0"}'
   >
     <a-form-model ref='ruleForm' :model='modal' layout='vertical' :rules='rules'>
       <a-form-model-item label='类型' prop='resourceType'>
-        <a-select v-model='modal.resourceType' placeholder='请选择资源类型' @change='resourceTypeChange' :disabled='resourceIndex >= 0' show-search>
+        <a-select v-model='modal.resourceType' placeholder='请选择资源类型' @change='changeResourceType'
+                  :disabled='resourceIndex >= 0' show-search>
           <a-select-opt-group v-for='(group,groupIndex) in resourceTypeList' :key='groupIndex' :label='group.group'>
             <a-select-option v-for='(item,itemIndex) in group.list' :value='item.code' :key='itemIndex'>{{ item.name
               }}
@@ -20,45 +21,17 @@
         </a-select>
       </a-form-model-item>
       <a-form-model-item label='资源' prop='resourceId' v-show='modal.resourceType'>
-        <a-select v-model='modal.resourceId' placeholder='请选择资源' @change='resourceChange'>
+        <a-select v-model='modal.resourceId' placeholder='请选择资源' @change='changeResource'>
           <a-select-option v-for='(item,index) in resourceList' :value='item.resourceId' :key='index'>
             {{ item.resourceName }}
           </a-select-option>
         </a-select>
       </a-form-model-item>
-      <jdbc-properties v-if="jdbcResource.indexOf(modal.resourceType)!==-1" ref='PropertiesModal' :type='resourceMode'></jdbc-properties>
-      <mqtt-properties v-if="modal.resourceType === 'MQTT'" ref='PropertiesModal' :type='resourceMode'></mqtt-properties>
-      <kafka-properties v-if="modal.resourceType === 'KAFKA'" ref='PropertiesModal' :type='resourceMode'></kafka-properties>
-      <http-client-properties v-if="modal.resourceType === 'HTTPCLIENT'" ref='PropertiesModal' :type='resourceMode'></http-client-properties>
-      <http-server-properties  v-if="modal.resourceType === 'HTTPSERVER'" ref='PropertiesModal' :type='resourceMode'></http-server-properties>
-      <coap-client-properties  v-if="modal.resourceType === 'COAPCLIENT'" ref='PropertiesModal' :type='resourceMode'></coap-client-properties>
-      <coap-server-properties  v-if="modal.resourceType === 'COAPSERVER'" ref='PropertiesModal' :type='resourceMode'></coap-server-properties>
-      <opc-u-a-properties v-if="modal.resourceType === 'OPCUA'" ref='PropertiesModal' :type='resourceMode'></opc-u-a-properties>
-      <redis-properties v-if="modal.resourceType === 'REDIS'" ref='PropertiesModal' :type='resourceMode'></redis-properties>
-      <rabbit-m-q-properties v-if="modal.resourceType === 'RABBITMQ'" ref='PropertiesModal' :type='resourceMode'></rabbit-m-q-properties>
-      <tcp-properties v-if="modal.resourceType === 'TCP'" ref='PropertiesModal' :type='resourceMode'></tcp-properties>
-      <udp-properties v-if="modal.resourceType === 'UDP'" ref='PropertiesModal' :type='resourceMode'></udp-properties>
-      <snmp-properties v-if="modal.resourceType === 'SNMP'" ref='PropertiesModal' :type='resourceMode'></snmp-properties>
-      <modbus-tcp-properties v-if="modal.resourceType === 'MODBUSTCP'" ref='PropertiesModal' :type='resourceMode'></modbus-tcp-properties>
-      <rocket-m-q-properties v-if="modal.resourceType === 'ROCKETMQ'" ref='PropertiesModal' :type='resourceMode'></rocket-m-q-properties>
-      <active-m-q-properties v-if="modal.resourceType === 'ACTIVEMQ'" ref='PropertiesModal' :type='resourceMode'></active-m-q-properties>
-      <pulsar-properties v-if="modal.resourceType === 'PULSAR'" ref='PropertiesModal' :type='resourceMode'></pulsar-properties>
-      <file-properties v-if="modal.resourceType === 'FILE'" ref='PropertiesModal' :type='resourceMode'></file-properties>
+      <component ref='PropertiesModal' :is='resourceComponent' v-if='resourceComponent'
+                 :type='resourceMode'></component>
     </a-form-model>
-    <div
-      :style="{
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
-        background: '#fff',
-        textAlign: 'right',
-        zIndex: 1
-      }"
-    >
-      <a-button :style="{ marginRight: '8px' }" @click='onClose'> 取消</a-button>
+    <div class='bottom-button'>
+      <a-button :style="{ marginRight: '8px' }" @click='close'> 取消</a-button>
       <a-button type='primary' @click='handleOk'> 确定</a-button>
     </div>
   </a-modal>
@@ -66,48 +39,11 @@
 
 <script>
 import { postAction } from '@/api/manage'
-import { getResourceListByType } from '@/config/resource.config'
-import JdbcProperties from '../properties/JdbcProperties.vue'
-import MqttProperties from '../properties/MqttProperties'
-import KafkaProperties from '../properties/KafkaProperties'
-import HttpClientProperties from '../properties/HttpClientProperties'
-import HttpServerProperties from '../properties/HttpServerProperties'
-import CoapClientProperties from '../properties/CoapClientProperties'
-import CoapServerProperties from '../properties/CoapServerProperties'
-import OpcUAProperties from '../properties/OpcUAProperties'
-import RedisProperties from '../properties/RedisProperties'
-import RabbitMQProperties from '../properties/RabbitMQProperties'
-import TcpProperties from '../properties/TcpProperties'
-import UdpProperties from '../properties/UdpProperties'
-import SnmpProperties from '../properties/SnmpProperties'
-import ModbusTcpProperties from '../properties/ModbusTcpProperties'
-import RocketMQProperties from '../properties/RocketMQProperties'
-import ActiveMQProperties from '../properties/ActiveMQProperties'
-import PulsarProperties from '../properties/PulsarProperties'
-import FileProperties from '../properties/FileProperties'
+import { resourceComponentMap, getResourceListByType } from '@/config/resource.config'
+import Vue from 'vue'
 
 export default {
   name: 'ResourceModel',
-  components: {
-    JdbcProperties,
-    MqttProperties,
-    KafkaProperties,
-    HttpClientProperties,
-    HttpServerProperties,
-    CoapClientProperties,
-    CoapServerProperties,
-    OpcUAProperties,
-    RedisProperties,
-    RabbitMQProperties,
-    TcpProperties,
-    UdpProperties,
-    SnmpProperties,
-    ModbusTcpProperties,
-    RocketMQProperties,
-    ActiveMQProperties,
-    PulsarProperties,
-    FileProperties
-  },
   data() {
     return {
       title: '操作',
@@ -125,39 +61,51 @@ export default {
       resourceTypeList: [],
       resourceMode: null, // source or dest
       resourceIndex: -1,
-      jdbcResource:["MYSQL","POSTGRESQL","TDENGINE","SQLSERVER","TIMESCALEDB","MARIADB","DM8","KINGBASE"]
+      resourceComponent: undefined,
+      resourceComponentMap
     }
   }
   ,
   methods: {
     add(resourceMode) {
-      this.edit(resourceMode, {}, -1)
-    }
-    ,
+      this.visible = true
+      this.resourceMode = resourceMode
+      this.resourceIndex = -1
+      this.modal = {}
+      this.resourceTypeList = getResourceListByType(resourceMode)
+    },
     edit(resourceMode, record, resourceIndex) {
+      this.visible = true
       this.resourceMode = resourceMode
       this.resourceIndex = resourceIndex
-      this.modal = JSON.parse(JSON.stringify(record))
+      this.modal = Object.assign({}, record)
       this.resourceTypeList = getResourceListByType(resourceMode)
-      this.visible = true
-      this.$nextTick(() => {
-        if (this.modal.resourceType) {
-          this.$refs.PropertiesModal.set(this.modal.properties)
-          this.listResource(this.modal.resourceType)
+      this.listResource(record.resourceType)
+      this.importComponent(record.resourceType, record.properties)
+    },
+    changeResourceType(resourceType) {
+      this.modal = { resourceType: resourceType }
+      this.listResource(resourceType)
+      this.importComponent(resourceType)
+    },
+    importComponent(resourceType, properties) {
+      import('../properties/' + this.resourceComponentMap[resourceType] + '.vue').then(component => {
+        this.resourceComponent = Vue.extend(component.default)
+        if (properties) {
+          this.$nextTick(() => {
+            this.$refs.PropertiesModal.set(properties)
+          })
         }
       })
-    }
-    ,
-    listResource(type) {
-      postAction(this.url.resourceList, { resourceType: type }).then(res => {
-        this.resourceList = res.data
-      })
-    }
-    ,
-    onClose() {
+    },
+    close() {
+      this.resourceList = []
+      this.resourceTypeList = []
+      this.resourceMode = null // source or dest
+      this.resourceIndex = -1
+      this.resourceComponent = undefined
       this.visible = false
-    }
-    ,
+    },
     handleOk() {
       const that = this
       this.$refs.ruleForm.validate(valid => {
@@ -172,25 +120,17 @@ export default {
             that.$emit('add', this.resourceMode, this.modal)
           }
           that.confirmLoading = false
-          that.visible = false
+          that.close()
         })
       })
-    }
-    ,
-    filterOption(input, option) {
-      if (!option.componentOptions.children[0].text) {
-        return false
-      }
-      return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
-    }
-    ,
-    resourceTypeChange(type) {
-      this.modal = { resourceType: type }
-      this.listResource(type)
-    }
-    ,
-    resourceChange(resourceId) {
-      let tempRuntimeId = this.modal.resourceRuntimeId;
+    },
+    listResource(type) {
+      postAction(this.url.resourceList, { resourceType: type }).then(res => {
+        this.resourceList = res.data
+      })
+    },
+    changeResource(resourceId) {
+      let tempRuntimeId = this.modal.resourceRuntimeId
       let index = this.resourceList.findIndex(resource => resource.resourceId === resourceId)
       this.modal = Object.assign({}, this.resourceList[index])
       this.modal.resourceRuntimeId = tempRuntimeId
@@ -199,6 +139,12 @@ export default {
           this.$refs.PropertiesModal.set(this.modal.properties)
         }
       })
+    },
+    filterOption(input, option) {
+      if (!option.componentOptions.children[0].text) {
+        return false
+      }
+      return option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
     }
   }
 }

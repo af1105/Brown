@@ -32,7 +32,7 @@ export default {
   },
   methods: {
     set(properties) {
-      this.properties = properties
+      this.properties = Object.assign({}, this.properties, properties)
     },
     get(callback) {
       let that = this

@@ -11,6 +11,7 @@ const resourceConfigMap = {
     name: 'MQTT',
     type: 'all',
     group: 'CHANNEL',
+    component: 'MqttProperties',
     details: {
       resource: { name: '地址', value: (resource) => resource.properties.url },
       rule: [
@@ -23,6 +24,7 @@ const resourceConfigMap = {
     name: 'TCP',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'TcpProperties',
     details: {
       resource: { name: '监听地址', value: (resource) => `0.0.0.0:${resource.properties.port}` },
       rule: [
@@ -38,6 +40,7 @@ const resourceConfigMap = {
     name: 'UDP',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'UdpProperties',
     details: {
       resource: { name: '监听地址', value: (resource) => `0.0.0.0:${resource.properties.port}` },
       rule: [
@@ -53,11 +56,15 @@ const resourceConfigMap = {
     name: 'SNMP',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'SnmpProperties',
     details: {
       resource: { name: '地址', value: (resource) => `udp:${resource.properties.ip}/${resource.properties.port}` },
       rule: [
         { name: '地址', value: (resource) => `udp:${resource.properties.ip}/${resource.properties.port}` },
-        { name: '读取点位', value: (resource) => resource.properties.points ? resource.properties.points.length : undefined },
+        {
+          name: '读取点位',
+          value: (resource) => resource.properties.points ? resource.properties.points.length : undefined
+        },
         {
           name: '启动延迟',
           value: (resource) => resource.properties.initialDelay ? `${resource.properties.initialDelay}${timeUnitMap[resource.properties.initialDelayUnit]}` : undefined
@@ -72,6 +79,7 @@ const resourceConfigMap = {
     name: 'Kafka',
     type: 'all',
     group: 'CHANNEL',
+    component: 'KafkaProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.url}` },
       rule: [
@@ -84,6 +92,7 @@ const resourceConfigMap = {
     name: 'RabbitMQ',
     type: 'all',
     group: 'CHANNEL',
+    component: 'RabbitMQProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.ip}:${resource.properties.port}` },
       rule: [
@@ -98,6 +107,7 @@ const resourceConfigMap = {
     name: 'RocketMQ',
     type: 'all',
     group: 'CHANNEL',
+    component: 'RocketMQProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.url}` },
       rule: [
@@ -111,6 +121,7 @@ const resourceConfigMap = {
     name: 'ActiveMQ',
     type: 'all',
     group: 'CHANNEL',
+    component: 'ActiveMQProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.url}` },
       rule: [
@@ -126,6 +137,7 @@ const resourceConfigMap = {
     name: 'Pulsar',
     type: 'all',
     group: 'CHANNEL',
+    component: 'PulsarProperties',
     details: {
       resource: { name: '地址', value: (resource) => resource.properties.url },
       rule: [
@@ -138,6 +150,7 @@ const resourceConfigMap = {
     name: 'MySQL',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -163,6 +176,7 @@ const resourceConfigMap = {
     name: 'MariaDB',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -188,6 +202,7 @@ const resourceConfigMap = {
     name: 'PostgreSQL',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -213,6 +228,7 @@ const resourceConfigMap = {
     name: 'TimescaleDB',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -238,6 +254,7 @@ const resourceConfigMap = {
     name: 'SQL Server',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -263,6 +280,7 @@ const resourceConfigMap = {
     name: 'TDengine',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -288,6 +306,7 @@ const resourceConfigMap = {
     name: 'KingbaseES',
     type: 'all',
     group: 'DATABASE',
+    component: 'JdbcProperties',
     details: {
       resource: {
         name: '地址',
@@ -313,6 +332,7 @@ const resourceConfigMap = {
     name: 'DM8',
     type: 'all',
     group: 'DATABASE',
+    component: 'DM8Properties',
     details: {
       resource: {
         name: '地址',
@@ -338,6 +358,7 @@ const resourceConfigMap = {
     name: 'HTTP Client',
     type: 'all',
     group: 'PROTOCOL',
+    component: 'HttpClientProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.url}` },
       rule: [
@@ -357,13 +378,17 @@ const resourceConfigMap = {
     name: 'HTTP Server',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'HttpServerProperties',
     details: {
       resource: {
         name: '监听地址',
         value: (resource) => `http://0.0.0.0:${resource.properties.port}${resource.properties.path}`
       },
       rule: [
-        { name: '监听地址', value: (resource) => `http://0.0.0.0:${resource.properties.port}${resource.properties.path}` },
+        {
+          name: '监听地址',
+          value: (resource) => `http://0.0.0.0:${resource.properties.port}${resource.properties.path}`
+        },
         {
           name: '响应内容',
           value: (resource) => resource.properties.response ? `${resource.properties.response}` : undefined
@@ -375,6 +400,7 @@ const resourceConfigMap = {
     name: 'CoAP Client',
     type: 'all',
     group: 'PROTOCOL',
+    component: 'CoapClientProperties',
     details: {
       resource: { name: '地址', value: (resource) => `coap://${resource.properties.ip}:${resource.properties.port}` },
       rule: [
@@ -397,13 +423,17 @@ const resourceConfigMap = {
     name: 'CoAP Server',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'CoapServerProperties',
     details: {
       resource: {
         name: '监听地址',
         value: (resource) => `coap://0.0.0.0:${resource.properties.port}/${resource.properties.path}`
       },
       rule: [
-        { name: '监听地址', value: (resource) => `coap://0.0.0.0:${resource.properties.port}/${resource.properties.path}` },
+        {
+          name: '监听地址',
+          value: (resource) => `coap://0.0.0.0:${resource.properties.port}/${resource.properties.path}`
+        },
         {
           name: '响应内容',
           value: (resource) => resource.properties.response ? `${resource.properties.response}` : undefined
@@ -415,11 +445,15 @@ const resourceConfigMap = {
     name: 'OPC UA',
     type: 'all',
     group: 'PROTOCOL',
+    component: 'OpcUAProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.ip}:${resource.properties.port}` },
       rule: [
         { name: '地址', value: (resource) => `opc.tcp://${resource.properties.ip}:${resource.properties.port}` },
-        { name: '读取点位', value: (resource) => resource.properties.points ? resource.properties.points.length : undefined },
+        {
+          name: '读取点位',
+          value: (resource) => resource.properties.points ? resource.properties.points.length : undefined
+        },
         {
           name: '启动延迟',
           value: (resource) => resource.properties.initialDelay ? `${resource.properties.initialDelay}${timeUnitMap[resource.properties.initialDelayUnit]}` : undefined
@@ -443,11 +477,15 @@ const resourceConfigMap = {
     name: 'Modbus TCP',
     type: 'source',
     group: 'PROTOCOL',
+    component: 'ModbusTcpProperties',
     details: {
       resource: { name: '地址', value: (resource) => `${resource.properties.ip}:${resource.properties.port}` },
       rule: [
         { name: '地址', value: (resource) => `${resource.properties.ip}:${resource.properties.port}` },
-        { name: '读取点位', value: (resource) => resource.properties.points ? resource.properties.points.length : undefined },
+        {
+          name: '读取点位',
+          value: (resource) => resource.properties.points ? resource.properties.points.length : undefined
+        },
         {
           name: '启动延迟',
           value: (resource) => resource.properties.initialDelay ? `${resource.properties.initialDelay}${timeUnitMap[resource.properties.initialDelayUnit]}` : undefined
@@ -462,6 +500,7 @@ const resourceConfigMap = {
     name: 'Redis',
     type: 'all',
     group: 'DATABASE',
+    component: 'RedisProperties',
     details: {
       resource: {
         name: '地址',
@@ -487,6 +526,7 @@ const resourceConfigMap = {
     name: 'File',
     type: 'all',
     group: 'DATABASE',
+    component: 'FileProperties',
     details: {
       resource: {
         name: '文件位置',
@@ -497,13 +537,25 @@ const resourceConfigMap = {
           name: '文件路径',
           value: (resource) => `${resource.properties.path}${resource.properties.file}`
         },
-        { name: '监听延迟', value: (resource) => resource.properties.delay ? `${resource.properties.delay}ms` : undefined },
+        {
+          name: '监听延迟',
+          value: (resource) => resource.properties.delay ? `${resource.properties.delay}ms` : undefined
+        },
         { name: '内容模板', value: (resource) => resource.properties.content ? resource.properties.content : undefined }
       ]
     }
   }
 }
 
+function createComponentMap() {
+  let result = {}
+  for (let resourceConfigMapKey in resourceConfigMap) {
+    result[resourceConfigMapKey] = resourceConfigMap[resourceConfigMapKey].component
+  }
+  return result
+}
+
+const resourceComponentMap = createComponentMap()
 
 function createTypeMap() {
   let result = {}
@@ -577,5 +629,10 @@ function toResultItem(detailItem, resource) {
 
 
 export {
-  resourceTypeMap, resourceTypeAllList, getResourceListByType, getResourceListByTypeAndGroup, getResourceDetails
+  resourceComponentMap,
+  resourceTypeMap,
+  resourceTypeAllList,
+  getResourceListByType,
+  getResourceListByTypeAndGroup,
+  getResourceDetails
 }

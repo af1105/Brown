@@ -18,19 +18,7 @@
         <a-input v-model='modal.desc' placeholder='请输入说明'></a-input>
       </a-form-model-item>
     </a-form-model>
-    <div
-      :style="{
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
-        background: '#fff',
-        textAlign: 'right',
-        zIndex: 1
-      }"
-    >
+    <div class='bottom-button'>
       <a-button :style="{ marginRight: '8px' }" @click='onClose'> 取消</a-button>
       <a-button type='primary' @click='handleOk'> 确定</a-button>
     </div>

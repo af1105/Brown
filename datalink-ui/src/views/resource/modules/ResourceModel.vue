@@ -12,10 +12,11 @@
       <a-row :gutter='24'>
         <a-col :span='12'>
           <a-form-model-item label='资源类型' prop='resourceType'>
-            <a-select v-model='modal.resourceType' placeholder='请选择资源类型' :disabled='modal.resourceId' show-search>
+            <a-select v-model='modal.resourceType' placeholder='请选择资源类型' :disabled='!!modal.resourceId'
+                      show-search @change='type => importComponent(type)'>
               <a-select-opt-group v-for='(group,groupIndex) in resourceTypeAllList' :key='groupIndex' :label='group.group'>
-                <a-select-option v-for='(item,itemIndex) in group.list' :value='item.code' :key='itemIndex'>{{ item.name
-                  }}
+                <a-select-option v-for='(item,itemIndex) in group.list' :value='item.code' :key='itemIndex'>
+                  {{ item.name }}
                 </a-select-option>
               </a-select-opt-group>
             </a-select>
@@ -27,43 +28,12 @@
           </a-form-model-item>
         </a-col>
       </a-row>
-      <jdbc-properties v-if="jdbcResource.indexOf(modal.resourceType)!==-1" ref='PropertiesModal'></jdbc-properties>
-      <mqtt-properties v-if="modal.resourceType === 'MQTT'" ref='PropertiesModal'></mqtt-properties>
-      <kafka-properties v-if="modal.resourceType === 'KAFKA'" ref='PropertiesModal'></kafka-properties>
-      <http-client-properties v-if="modal.resourceType === 'HTTPCLIENT'" ref='PropertiesModal'></http-client-properties>
-      <http-server-properties v-if="modal.resourceType === 'HTTPSERVER'" ref='PropertiesModal'></http-server-properties>
-      <coap-client-properties v-if="modal.resourceType === 'COAPCLIENT'" ref='PropertiesModal'></coap-client-properties>
-      <coap-server-properties v-if="modal.resourceType === 'COAPSERVER'" ref='PropertiesModal'></coap-server-properties>
-      <opc-u-a-properties v-if="modal.resourceType === 'OPCUA'" ref='PropertiesModal'></opc-u-a-properties>
-      <redis-properties v-if="modal.resourceType === 'REDIS'" ref='PropertiesModal'></redis-properties>
-      <rabbit-m-q-properties v-if="modal.resourceType === 'RABBITMQ'" ref='PropertiesModal'></rabbit-m-q-properties>
-      <tcp-properties v-if="modal.resourceType === 'TCP'" ref='PropertiesModal'></tcp-properties>
-      <udp-properties v-if="modal.resourceType === 'UDP'" ref='PropertiesModal'></udp-properties>
-      <snmp-properties v-if="modal.resourceType === 'SNMP'" ref='PropertiesModal'></snmp-properties>
-      <modbus-tcp-properties v-if="modal.resourceType === 'MODBUSTCP'" ref='PropertiesModal'></modbus-tcp-properties>
-      <rocket-m-q-properties v-if="modal.resourceType === 'ROCKETMQ'" ref='PropertiesModal'></rocket-m-q-properties>
-      <active-m-q-properties v-if="modal.resourceType === 'ACTIVEMQ'" ref='PropertiesModal'></active-m-q-properties>
-      <pulsar-properties v-if="modal.resourceType === 'PULSAR'" ref='PropertiesModal'></pulsar-properties>
-      <d-m8-properties v-if="modal.resourceType === 'DM8'" ref='PropertiesModal'></d-m8-properties>
-      <file-properties v-if="modal.resourceType === 'FILE'" ref='PropertiesModal'></file-properties>
+      <component ref='PropertiesModal' v-if='resourceComponent' :is='resourceComponent'></component>
       <a-form-model-item label='备注' prop='description'>
-        <a-textarea v-model='modal.description' :rows='2' placeholder='请输入备注'
-        />
+        <a-textarea v-model='modal.description' :rows='2' placeholder='请输入备注' />
       </a-form-model-item>
     </a-form-model>
-    <div
-      :style="{
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        borderTop: '1px solid #e9e9e9',
-        padding: '10px 16px',
-        background: '#fff',
-        textAlign: 'right',
-        zIndex: 1
-      }"
-    >
+    <div class='bottom-button'>
       <a-button :style="{ marginRight: '10px',width: '110px' }" @click='testDriver'> 测试</a-button>
       <a-button :style="{ marginRight: '10px',width: '110px' }" @click='onClose'> 取消</a-button>
       <a-button :style="{ width: '110px' }" @click='handleOk' type='primary'> 保存</a-button>
@@ -73,50 +43,11 @@
 
 <script>
 import { postAction, putAction } from '@/api/manage'
-import { resourceTypeAllList } from '@/config/resource.config'
-import JdbcProperties from '../properties/JdbcProperties.vue'
-import MqttProperties from '../properties/MqttProperties'
-import KafkaProperties from '../properties/KafkaProperties'
-import HttpClientProperties from '../properties/HttpClientProperties'
-import HttpServerProperties from '../properties/HttpServerProperties'
-import CoapClientProperties from '../properties/CoapClientProperties'
-import CoapServerProperties from '../properties/CoapServerProperties'
-import OpcUAProperties from '../properties/OpcUAProperties'
-import RedisProperties from '../properties/RedisProperties'
-import RabbitMQProperties from '../properties/RabbitMQProperties'
-import TcpProperties from '../properties/TcpProperties'
-import UdpProperties from '../properties/UdpProperties'
-import SnmpProperties from '../properties/SnmpProperties'
-import ModbusTcpProperties from '../properties/ModbusTcpProperties'
-import RocketMQProperties from '../properties/RocketMQProperties'
-import ActiveMQProperties from '../properties/ActiveMQProperties'
-import PulsarProperties from '../properties/PulsarProperties'
-import DM8Properties from '../properties/DM8Properties'
-import FileProperties from '../properties/FileProperties'
+import { resourceComponentMap, resourceTypeAllList } from '@/config/resource.config'
+import Vue from 'vue'
 
 export default {
   name: 'ResourceModel',
-  components: {
-    JdbcProperties,
-    MqttProperties,
-    KafkaProperties,
-    HttpClientProperties,
-    HttpServerProperties,
-    CoapClientProperties,
-    CoapServerProperties,
-    OpcUAProperties,
-    RedisProperties,
-    RabbitMQProperties,
-    TcpProperties,
-    UdpProperties,
-    SnmpProperties,
-    ModbusTcpProperties,
-    RocketMQProperties,
-    ActiveMQProperties,
-    PulsarProperties,
-    DM8Properties,
-    FileProperties
-  },
   data() {
     return {
       title: '操作',
@@ -132,24 +63,35 @@ export default {
         resourceType: [{ required: true, message: '请选择资源类型', trigger: 'change' }],
         resourceName: [{ required: true, message: '请输入资源名称', trigger: 'blur' }]
       },
-      resourceTypeAllList: resourceTypeAllList,
-      jdbcResource:["MYSQL","POSTGRESQL","TDENGINE","SQLSERVER","TIMESCALEDB","MARIADB","KINGBASE"]
+      resourceComponent: undefined,
+      resourceTypeAllList,
+      resourceComponentMap
     }
   },
   methods: {
     add() {
-      this.edit({})
+      this.modal = {}
+      this.resourceComponent = undefined
+      this.visible = true
     },
     edit(record) {
-      this.modal = Object.assign({}, record)
       this.visible = true
-      this.$nextTick(() => {
-        if (this.modal.resourceType) {
-          this.$refs.PropertiesModal.set(this.modal.properties)
+      this.modal = Object.assign({}, record)
+      this.importComponent(record.resourceType, record.properties)
+    },
+    importComponent(resourceType, properties) {
+      import('../properties/' + this.resourceComponentMap[resourceType] + '.vue').then(component => {
+        this.resourceComponent = Vue.extend(component.default)
+        if (properties) {
+          this.$nextTick(() => {
+            this.$refs.PropertiesModal.set(properties)
+          })
         }
       })
     },
     onClose() {
+      this.modal = {}
+      this.resourceComponent = undefined
       this.visible = false
     },
     handleOk() {
