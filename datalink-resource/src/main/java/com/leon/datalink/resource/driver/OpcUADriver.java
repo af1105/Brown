@@ -72,6 +72,10 @@ public class OpcUADriver extends AbstractDriver {
             opcUAClientConfig.setPort(properties.getInteger("port"));
             opcUAClientConfig.setUsername(properties.getString("username"));
             opcUAClientConfig.setPassword(properties.getString("password"));
+            opcUAClientConfig.setConnectTimeout(properties.getInteger("connectTimeout", 5000));
+            opcUAClientConfig.setRequestTimeout(properties.getInteger("requestTimeout", 60000));
+            opcUAClientConfig.setKeepAliveInterval(properties.getInteger("keepAliveInterval", 5000));
+            opcUAClientConfig.setKeepAliveTimeout(properties.getInteger("keepAliveTimeout", 5000));
             OpcUAClientFactory opcUAClientFactory = new OpcUAClientFactory(opcUAClientConfig);
             OpcUaClient opcUaClient = opcUAClientFactory.create();
             return opcUaClient.getSession().get() != null;
