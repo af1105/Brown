@@ -20,6 +20,7 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,13 +79,20 @@ public class SnmpDriver extends AbstractDriver {
                     Loggers.DRIVER.error("snmp driver error {}", response);
                     produceDataError(response == null ? "null response" : response.getErrorStatusText());
                 } else {
-                    for (int i = 0; i < response.size(); i++) {
-                        VariableBinding vb = response.get(i);
-                        HashMap<Object, Object> map = new HashMap<>();
-                        map.put("oid", vb.getOid().toString());
-                        map.put("value", vb.getVariable().toString());
-                        map.put("url", url);
-                        produceData(map);
+                    long timestamp = System.currentTimeMillis();
+                    List<Map<String, Object>> resultList = Arrays.stream(response.toArray()).map(vb -> {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("oid", vb.getOid().toString());
+                        result.put("success", null != vb.getVariable());
+                        result.put("value", vb.getVariable().toString());
+                        result.put("timestamp", timestamp);
+                        return result;
+                    }).collect(Collectors.toList());
+                    String transferType = properties.getString("transferType", "single");
+                    if ("single".equals(transferType)) {
+                        resultList.forEach(result -> produceData(result));
+                    } else {
+                        produceData(resultList);
                     }
                 }
             }

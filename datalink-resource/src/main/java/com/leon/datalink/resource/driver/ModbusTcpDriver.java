@@ -13,11 +13,10 @@ import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class ModbusTcpDriver extends AbstractDriver {
 
@@ -59,31 +58,38 @@ public class ModbusTcpDriver extends AbstractDriver {
     }
 
     @Override
-    public void scheduleTrigger(ConfigProperties properties) throws Exception {
+    public void scheduleTrigger(ConfigProperties properties) {
         List<Map<String, Object>> points = properties.getList("points");
         if (null == points || points.isEmpty()) throw new ValidateException();
 
-        PlcReadRequest.Builder builder = plcConnection.readRequestBuilder();
+        try {
+            PlcReadRequest.Builder builder = plcConnection.readRequestBuilder();
 
-        points.forEach(point -> {
-            String item = String.format("%s:%s:%s", point.get("func"), point.get("address"), point.get("type"));
-            builder.addItem((String) point.get("tag"), item);
-        });
-        PlcReadRequest readRequest = builder.build();
+            points.forEach(point -> {
+                String item = String.format("%s:%s:%s", point.get("func"), point.get("address"), point.get("type"));
+                builder.addItem((String) point.get("tag"), item);
+            });
 
-        PlcReadResponse response = readRequest.execute().get();
-        for (String tag : response.getFieldNames()) {
-            if (response.getResponseCode(tag) == PlcResponseCode.OK) {
-                Collection<Object> allValues = response.getAllObjects(tag);
-                allValues.forEach(value -> {
-                    HashMap<String, Object> result = new HashMap<>();
-                    result.put("tag", tag);
-                    result.put("value", value);
-                    produceData(result);
-                });
+            PlcReadResponse response = builder.build().execute().get();
+            long timestamp = System.currentTimeMillis();
+            List<Map<String, Object>> resultList = response.getFieldNames().stream().map(tag -> {
+                Map<String, Object> result = new HashMap<>();
+                boolean success = PlcResponseCode.OK.equals(response.getResponseCode(tag));
+                result.put("tag", tag);
+                result.put("success", success);
+                result.put("value", success ? response.getObject(tag) : null);
+                result.put("timestamp", timestamp);
+                return result;
+            }).collect(Collectors.toList());
+            String transferType = properties.getString("transferType", "single");
+            if ("single".equals(transferType)) {
+                resultList.forEach(this::produceData);
             } else {
-                Loggers.DRIVER.error("modbus read {} error: {}", tag, response.getResponseCode(tag).name());
+                produceData(resultList);
             }
+        } catch (Exception e) {
+            produceDataError(e.getMessage());
+            Loggers.DRIVER.error("modbus read error: {}", e.getMessage());
         }
     }
 

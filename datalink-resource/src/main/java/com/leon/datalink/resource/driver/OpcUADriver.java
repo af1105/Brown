@@ -86,7 +86,7 @@ public class OpcUADriver extends AbstractDriver {
     }
 
     @Override
-    public void scheduleTrigger(ConfigProperties properties) throws Exception {
+    public void scheduleTrigger(ConfigProperties properties) {
         if (readPointMap.isEmpty()) return;
         try {
             Map<NodeId, DataValue> nodeIdObjectMap = opcUATemplate.readValues(new ArrayList<>(readPointMap.values()));
@@ -107,6 +107,7 @@ public class OpcUADriver extends AbstractDriver {
                 produceData(resultList);
             }
         } catch (Exception e) {
+            produceDataError(e.getMessage());
             Loggers.DRIVER.error("opcua read error {}", e.getMessage());
         }
     }
